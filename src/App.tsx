@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import Header from './components/Header';
 import TaskForm from './components/TaskForm';
+import TaskStats from './components/TaskStats';
+import TaskFilters from './components/TaskFilters';
 import TaskList from './components/TaskList';
 import { initialTasks } from './data/initialTasks';
-import type { NewTask, Task } from './types/task';
+import type { FilterMode, NewTask, Task } from './types/task';
 import './App.scss';
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [filter, setFilter] = useState<FilterMode>('all');
 
   const handleAddTask = (newTask: NewTask) => {
     setTasks((prev) => [
@@ -28,13 +31,21 @@ function App() {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  const visibleTasks = tasks.filter((task) => {
+    if (filter === 'completed') return task.completed;
+    if (filter === 'active') return !task.completed;
+    return true;
+  });
+
   return (
     <div className="app">
       <Header />
       <main className="app__main">
         <TaskForm onAddTask={handleAddTask} />
+        <TaskStats tasks={tasks} />
+        <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
         <TaskList
-          tasks={tasks}
+          tasks={visibleTasks}
           totalCount={tasks.length}
           onToggle={handleToggleTask}
           onDelete={handleDeleteTask}

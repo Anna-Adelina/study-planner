@@ -1,0 +1,19 @@
+.task-filters {
+  display: flex;
+  gap: 8px;
+
+  &__button {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+
+    &--active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+  }
+}
