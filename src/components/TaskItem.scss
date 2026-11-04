@@ -1,0 +1,82 @@
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border-left: 4px solid #2563eb;
+
+  &__title {
+    margin: 0 0 4px;
+  }
+
+  &__description {
+    margin: 0 0 8px;
+    color: #555;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  &__category {
+    padding: 2px 8px;
+    background: #e5e7eb;
+    border-radius: 10px;
+  }
+
+  &__status {
+    color: #666;
+  }
+
+  &__priority {
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #fff;
+
+    &--low {
+      background: #16a34a;
+    }
+
+    &--medium {
+      background: #d97706;
+    }
+
+    &--high {
+      background: #dc2626;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__button {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+
+    &--danger {
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+  }
+
+  &--completed {
+    border-left-color: #16a34a;
+    opacity: 0.6;
+
+    .task-item__title {
+      text-decoration: line-through;
+    }
+  }
+}

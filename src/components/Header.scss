@@ -1,0 +1,13 @@
+.header {
+  margin-bottom: 24px;
+  text-align: center;
+
+  &__title {
+    margin: 0;
+  }
+
+  &__subtitle {
+    margin: 4px 0 0;
+    color: #666;
+  }
+}
