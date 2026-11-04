@@ -4,6 +4,8 @@ import './TaskFilters.scss';
 interface TaskFiltersProps {
   currentFilter: FilterMode;
   onFilterChange: (filter: FilterMode) => void;
+  hasCompleted: boolean;
+  onClearCompleted: () => void;
 }
 
 const filters: { value: FilterMode; label: string }[] = [
@@ -12,7 +14,12 @@ const filters: { value: FilterMode; label: string }[] = [
   { value: 'active', label: 'Не виконані' },
 ];
 
-function TaskFilters({ currentFilter, onFilterChange }: TaskFiltersProps) {
+function TaskFilters({
+  currentFilter,
+  onFilterChange,
+  hasCompleted,
+  onClearCompleted,
+}: TaskFiltersProps) {
   return (
     <div className="task-filters">
       {filters.map((filter) => (
@@ -29,6 +36,15 @@ function TaskFilters({ currentFilter, onFilterChange }: TaskFiltersProps) {
           {filter.label}
         </button>
       ))}
+
+      <button
+        type="button"
+        className="task-filters__clear"
+        disabled={!hasCompleted}
+        onClick={onClearCompleted}
+      >
+        Очистити виконані
+      </button>
     </div>
   );
 }

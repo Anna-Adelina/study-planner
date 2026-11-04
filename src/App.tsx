@@ -31,6 +31,12 @@ function App() {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  const handleClearCompleted = () => {
+    setTasks((prev) => prev.filter((task) => !task.completed));
+  };
+
+  const hasCompleted = tasks.some((task) => task.completed);
+
   const visibleTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'active') return !task.completed;
@@ -43,7 +49,12 @@ function App() {
       <main className="app__main">
         <TaskForm onAddTask={handleAddTask} />
         <TaskStats tasks={tasks} />
-        <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
+        <TaskFilters 
+          currentFilter={filter}
+          onFilterChange={setFilter}
+          hasCompleted={hasCompleted}
+          onClearCompleted={handleClearCompleted} 
+        />
         <TaskList
           tasks={visibleTasks}
           totalCount={tasks.length}
