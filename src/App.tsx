@@ -9,6 +9,7 @@ import type { FilterMode, NewTask, Task } from './types/task';
 import './App.scss';
 
 function App() {
+  //     значення  сеттер              початкове значення
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [filter, setFilter] = useState<FilterMode>('all');
 
@@ -19,6 +20,7 @@ function App() {
     ]);
   };
 
+  // батько створює функцію і має право змінювати свій state
   const handleToggleTask = (id: number) => {
     setTasks((prev) =>
       prev.map((task) =>
@@ -44,7 +46,7 @@ function App() {
   });
 
   return (
-    <div className="app">
+    <div className="app"> //корінь, обгортка 
       <Header />
       <main className="app__main">
         <TaskForm onAddTask={handleAddTask} />

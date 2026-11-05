@@ -13,6 +13,7 @@ const priorityLabels = {
   high: 'Високий',
 };
 
+// дочірній їх отримує
 function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
   return (
     <li className={task.completed ? 'task-item task-item--completed' : 'task-item'}>
@@ -36,11 +37,11 @@ function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
         <button
           className="task-item__button"
           type="button"
-          onClick={() => onToggle(task.id)}
+          onClick={() => onToggle(task.id)}  // дитина просто «дзвонить» цією функцією
         >
           {task.completed ? 'Повернути' : 'Виконано'}
         </button>
-        {task.completed && (
+        {task.completed && ( //якщо виконано, покажи кнопку
           <button
             className="task-item__button task-item__button--danger"
             type="button"

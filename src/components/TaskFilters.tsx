@@ -28,7 +28,7 @@ function TaskFilters({
           type="button"
           className={
             filter.value === currentFilter
-              ? 'task-filters__button task-filters__button--active'
+              ? 'task-filters__button task-filters__button--active' //активна кнопка
               : 'task-filters__button'
           }
           onClick={() => onFilterChange(filter.value)}

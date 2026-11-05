@@ -9,6 +9,7 @@ interface TaskListProps {
   onDelete: (id: number) => void;
 }
 
+//якщо завдань немає, покажи повідомлення, і далі код не виконується
 function TaskList({ tasks, totalCount, onToggle, onDelete }: TaskListProps) {
   if (totalCount === 0) {
     return (
@@ -24,9 +25,10 @@ function TaskList({ tasks, totalCount, onToggle, onDelete }: TaskListProps) {
   }
 
   return (
+    //map: для кожного завдання свій TaskItem
     <ul className="task-list">
       {tasks.map((task) => (
-        <TaskItem
+        <TaskItem                       // батько кладе дані в атрибути
           key={task.id}
           task={task}
           onToggle={onToggle}

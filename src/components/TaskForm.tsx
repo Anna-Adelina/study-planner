@@ -14,6 +14,7 @@ function TaskForm({ onAddTask }: TaskFormProps) {
   const [priority, setPriority] = useState<Priority>('medium');
   const [error, setError] = useState('');
 
+  //перевірка, що назва не порожня
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
