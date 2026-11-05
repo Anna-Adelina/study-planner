@@ -45,8 +45,9 @@ function App() {
     return true;
   });
 
+  //корінь, обгортка app__main
   return (
-    <div className="app"> //корінь, обгортка 
+    <div className="app"> 
       <Header />
       <main className="app__main">
         <TaskForm onAddTask={handleAddTask} />
