@@ -93,7 +93,10 @@ export function TaskProvider({ children }: TaskProviderProps) {
       dispatch({ type: 'requestDelete', payload: { id } }),
     undoDelete: () => dispatch({ type: 'undoDelete' }),
     clearCompleted: () => dispatch({ type: 'clearCompleted' }),
-    resetTasks: () => dispatch({ type: 'reset' }),
+    resetTasks: () => {
+      dispatch({ type: 'reset' });
+      showToast('Дані скинуто до початкових', 'info');
+    },
     editingTask,
     startEdit: (id: number) => setEditingId(id),
     cancelEdit: () => setEditingId(null),

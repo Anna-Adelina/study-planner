@@ -1,6 +1,7 @@
 .task-filters {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 
   &__button {
     padding: 6px 14px;
@@ -32,5 +33,14 @@
       color: #999;
       cursor: not-allowed;
     }
+  }
+
+  &__reset {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
   }
 }

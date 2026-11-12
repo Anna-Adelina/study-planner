@@ -9,8 +9,13 @@ const filters: { value: FilterMode; label: string }[] = [
 ];
 
 function TaskFilters() {
-  const { tasks, filter, setFilter, clearCompleted } = useTaskContext();
+  const { tasks, filter, setFilter, clearCompleted, resetTasks } = useTaskContext();
   const hasCompleted = tasks.some((task) => task.completed);
+  const handleReset = () => {
+    if (window.confirm('Скинути всі завдання до початкових? Ваші зміни буде втрачено.')) {
+      resetTasks();
+    }
+  };
 
   return (
     <div className="task-filters">
@@ -36,6 +41,14 @@ function TaskFilters() {
         onClick={clearCompleted}
       >
         Очистити виконані
+      </button>
+
+      <button
+        type="button"
+        className="task-filters__reset"
+        onClick={handleReset}
+      >
+        Скинути дані
       </button>
     </div>
   );
