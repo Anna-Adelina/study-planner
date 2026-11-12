@@ -5,14 +5,21 @@ import TaskStats from './components/TaskStats';
 import TaskFilters from './components/TaskFilters';
 import TaskList from './components/TaskList';
 import { initialTasks } from './data/initialTasks';
+import { useLocalStorage } from './hooks/useLocalStorage';
+import { FILTER_STORAGE_KEY } from './utils/taskStorage';
+import { isFilterMode } from './types/task';
 import type { FilterMode, NewTask, Task } from './types/task';
 import './App.scss';
 
 function App() {
   //     значення  сеттер              початкове значення
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [filter, setFilter] = useState<FilterMode>('all');
-
+  const [filter, setFilter] = useLocalStorage<FilterMode>(
+    FILTER_STORAGE_KEY,
+    'all',
+    isFilterMode,
+  );
+  
   const handleAddTask = (newTask: NewTask) => {
     setTasks((prev) => [
       ...prev,

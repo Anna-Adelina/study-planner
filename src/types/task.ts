@@ -2,6 +2,9 @@ export type Priority = 'low' | 'medium' | 'high';
 
 export type FilterMode = 'all' | 'completed' | 'active';
 
+export const isFilterMode = (value: unknown): value is FilterMode =>
+  value === 'all' || value === 'completed' || value === 'active';
+
 export interface Task {
   id: number;
   title: string;
