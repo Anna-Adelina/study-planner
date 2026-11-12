@@ -5,11 +5,20 @@ import type { Priority } from '../types/task';
 import './TaskForm.scss';
 
 function TaskForm() {
-  const { addTask } = useTaskContext();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [priority, setPriority] = useState<Priority>('medium');
+  const { addTask, updateTask, editingTask, cancelEdit } = useTaskContext();
+  const isEditing = editingTask !== null;
+
+  // початкові значення беремо із завдання, яке редагуємо (якщо воно є)
+  const [title, setTitle] = useState(editingTask?.title ?? '');
+  const [description, setDescription] = useState(editingTask?.description ?? '');
+  const [category, setCategory] = useState(
+    editingTask && editingTask.category !== 'Без категорії'
+      ? editingTask.category
+      : '',
+  );
+  const [priority, setPriority] = useState<Priority>(
+    editingTask?.priority ?? 'medium',
+  );
   const [error, setError] = useState('');
 
   //перевірка, що назва не порожня
@@ -21,13 +30,20 @@ function TaskForm() {
       return;
     }
 
-    addTask({
+    const values = {
       title: title.trim(),
       description: description.trim(),
       category: category.trim() || 'Без категорії',
       priority,
-    });
+    };
 
+    if (editingTask) {
+      updateTask(editingTask.id, values); // зміна йде через dispatch → reducer
+      cancelEdit(); // форма перемонтується в режим «нове завдання»
+      return;
+    }
+
+    addTask(values);
     setTitle('');
     setDescription('');
     setCategory('');
@@ -37,6 +53,8 @@ function TaskForm() {
 
   return (
     <form className="task-form" onSubmit={handleSubmit}>
+      {isEditing && <p className="task-form__mode">Редагування завдання</p>}
+
       <div className="task-form__field">
         <label className="task-form__label" htmlFor="task-title">
           Назва
@@ -90,9 +108,20 @@ function TaskForm() {
         </select>
       </div>
 
-      <button className="task-form__button" type="submit">
-        Додати
-      </button>
+      <div className="task-form__actions">
+        <button className="task-form__button" type="submit">
+          {isEditing ? 'Зберегти' : 'Додати'}
+        </button>
+        {isEditing && (
+          <button
+            className="task-form__cancel"
+            type="button"
+            onClick={cancelEdit}
+          >
+            Скасувати
+          </button>
+        )}
+      </div>
     </form>
   );
 }

@@ -18,6 +18,9 @@ export interface TaskContextValue {
   undoDelete: () => void;
   clearCompleted: () => void;
   resetTasks: () => void;
+  editingTask: Task | null;
+  startEdit: (id: number) => void;
+  cancelEdit: () => void;
 }
 
 // null за замовчуванням: useTaskContext перевірить, що ми всередині провайдера

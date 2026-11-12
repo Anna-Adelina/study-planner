@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import type { ReactNode } from 'react';
 import { TaskContext } from './TaskContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -27,6 +27,12 @@ export function TaskProvider({ children }: TaskProviderProps) {
     'all',
     isFilterMode,
   );
+
+  // UI-стан: яке завдання зараз редагуємо
+  const [editingId, setEditingId] = useState<number | null>(null);
+  // derived state: саме завдання знаходимо під час render
+  const editingTask =
+    state.tasks.find((task) => task.id === editingId) ?? null;
 
   // Effect 1: після кожної зміни tasks синхронізуємо їх з localStorage
   useEffect(() => {
@@ -63,6 +69,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
     undoDelete: () => dispatch({ type: 'undoDelete' }),
     clearCompleted: () => dispatch({ type: 'clearCompleted' }),
     resetTasks: () => dispatch({ type: 'reset' }),
+    editingTask,
+    startEdit: (id: number) => setEditingId(id),
+    cancelEdit: () => setEditingId(null),
   };
 
   return <TaskContext value={value}>{children}</TaskContext>;

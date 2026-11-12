@@ -13,7 +13,7 @@ const priorityLabels = {
 };
 
 function TaskItem({ task }: TaskItemProps) {
-  const { pendingDeletion, toggleTask, requestDelete } = useTaskContext();
+  const { pendingDeletion, toggleTask, requestDelete, startEdit  } = useTaskContext();
 
   // derived state: чи очікує це завдання на видалення
   const isPendingDelete = pendingDeletion?.ids.includes(task.id) ?? false;
@@ -48,7 +48,7 @@ function TaskItem({ task }: TaskItemProps) {
         </div>
       </div>
 
-      <div className="task-item__actions">
+            <div className="task-item__actions">
         <button
           className="task-item__button"
           type="button"
@@ -57,6 +57,16 @@ function TaskItem({ task }: TaskItemProps) {
         >
           {task.completed ? 'Повернути' : 'Виконано'}
         </button>
+
+        <button
+          className="task-item__button"
+          type="button"
+          disabled={isPendingDelete}
+          onClick={() => startEdit(task.id)}
+        >
+          Редагувати
+        </button>
+
         {task.completed && (
           <button
             className="task-item__button task-item__button--danger"

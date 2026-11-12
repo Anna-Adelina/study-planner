@@ -43,4 +43,28 @@
       background: #1d4ed8;
     }
   }
+
+    &__mode {
+    margin: 0;
+    font-weight: 600;
+    color: #2563eb;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+
+    > * {
+      flex: 1;
+    }
+  }
+
+  &__cancel {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
 }
