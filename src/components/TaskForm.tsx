@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { NewTask, Priority } from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
+import type { Priority } from '../types/task';
 import './TaskForm.scss';
 
-interface TaskFormProps {
-  onAddTask: (task: NewTask) => void;
-}
-
-function TaskForm({ onAddTask }: TaskFormProps) {
+function TaskForm() {
+  const { addTask } = useTaskContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -23,7 +21,7 @@ function TaskForm({ onAddTask }: TaskFormProps) {
       return;
     }
 
-    onAddTask({
+    addTask({
       title: title.trim(),
       description: description.trim(),
       category: category.trim() || 'Без категорії',

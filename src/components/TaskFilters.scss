@@ -16,4 +16,21 @@
       color: #fff;
     }
   }
+
+  &__clear {
+    margin-left: auto;
+    padding: 6px 14px;
+    border: 1px solid #dc2626;
+    border-radius: 16px;
+    background: #fff;
+    color: #dc2626;
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      border-color: #ccc;
+      color: #999;
+      cursor: not-allowed;
+    }
+  }
 }

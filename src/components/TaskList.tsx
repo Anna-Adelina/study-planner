@@ -1,17 +1,19 @@
-import type { Task } from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
 import TaskItem from './TaskItem';
 import './TaskList.scss';
 
-interface TaskListProps {
-  tasks: Task[];
-  totalCount: number;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-}
-
 //якщо завдань немає, покажи повідомлення, і далі код не виконується
-function TaskList({ tasks, totalCount, onToggle, onDelete }: TaskListProps) {
-  if (totalCount === 0) {
+function TaskList() {
+  const { tasks, filter } = useTaskContext();
+
+  // derived state: відфільтрований список обчислюється під час render
+  const visibleTasks = tasks.filter((task) => {
+    if (filter === 'completed') return task.completed;
+    if (filter === 'active') return !task.completed;
+    return true;
+  });
+
+  if (tasks.length === 0) {
     return (
       <div className="task-list__empty">
         <p>Завдань поки немає.</p>
@@ -20,20 +22,14 @@ function TaskList({ tasks, totalCount, onToggle, onDelete }: TaskListProps) {
     );
   }
 
-  if (tasks.length === 0) {
+  if (visibleTasks.length === 0) {
     return <p className="task-list__empty">За цим фільтром завдань немає.</p>;
   }
 
   return (
-    //map: для кожного завдання свій TaskItem
     <ul className="task-list">
-      {tasks.map((task) => (
-        <TaskItem                       // батько кладе дані в атрибути
-          key={task.id}
-          task={task}
-          onToggle={onToggle}
-          onDelete={onDelete}
-        />
+      {visibleTasks.map((task) => (
+        <TaskItem key={task.id} task={task} />
       ))}
     </ul>
   );

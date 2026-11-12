@@ -1,10 +1,9 @@
+import { useTaskContext } from '../hooks/useTaskContext';
 import type { Task } from '../types/task';
 import './TaskItem.scss';
 
 interface TaskItemProps {
   task: Task;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
 }
 
 const priorityLabels = {
@@ -13,10 +12,22 @@ const priorityLabels = {
   high: 'Високий',
 };
 
-// дочірній їх отримує
-function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
+function TaskItem({ task }: TaskItemProps) {
+  const { pendingDeletion, toggleTask, requestDelete } = useTaskContext();
+
+  // derived state: чи очікує це завдання на видалення
+  const isPendingDelete = pendingDeletion?.ids.includes(task.id) ?? false;
+
+  const className = [
+    'task-item',
+    task.completed && 'task-item--completed',
+    isPendingDelete && 'task-item--pending',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <li className={task.completed ? 'task-item task-item--completed' : 'task-item'}>
+    <li className={className}>
       <div className="task-item__content">
         <h3 className="task-item__title">{task.title}</h3>
         {task.description && (
@@ -28,7 +39,11 @@ function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
             {priorityLabels[task.priority]}
           </span>
           <span className="task-item__status">
-            {task.completed ? 'Виконано' : 'Не виконано'}
+            {isPendingDelete
+              ? 'Буде видалено'
+              : task.completed
+                ? 'Виконано'
+                : 'Не виконано'}
           </span>
         </div>
       </div>
@@ -37,15 +52,17 @@ function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
         <button
           className="task-item__button"
           type="button"
-          onClick={() => onToggle(task.id)}  // дитина просто «дзвонить» цією функцією
+          disabled={isPendingDelete}
+          onClick={() => toggleTask(task.id)}
         >
           {task.completed ? 'Повернути' : 'Виконано'}
         </button>
-        {task.completed && ( //якщо виконано, покажи кнопку
+        {task.completed && (
           <button
             className="task-item__button task-item__button--danger"
             type="button"
-            onClick={() => onDelete(task.id)}
+            disabled={isPendingDelete}
+            onClick={() => requestDelete(task.id)}
           >
             Видалити
           </button>

@@ -79,4 +79,10 @@
       text-decoration: line-through;
     }
   }
+
+  &--pending {
+    opacity: 0.4;
+    border-left-color: #dc2626;
+    border-left-style: dashed;
+  }
 }

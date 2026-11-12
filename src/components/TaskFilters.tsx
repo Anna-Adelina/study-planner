@@ -1,12 +1,6 @@
+import { useTaskContext } from '../hooks/useTaskContext';
 import type { FilterMode } from '../types/task';
 import './TaskFilters.scss';
-
-interface TaskFiltersProps {
-  currentFilter: FilterMode;
-  onFilterChange: (filter: FilterMode) => void;
-  hasCompleted: boolean;
-  onClearCompleted: () => void;
-}
 
 const filters: { value: FilterMode; label: string }[] = [
   { value: 'all', label: 'Всі' },
@@ -14,26 +8,24 @@ const filters: { value: FilterMode; label: string }[] = [
   { value: 'active', label: 'Не виконані' },
 ];
 
-function TaskFilters({
-  currentFilter,
-  onFilterChange,
-  hasCompleted,
-  onClearCompleted,
-}: TaskFiltersProps) {
+function TaskFilters() {
+  const { tasks, filter, setFilter, clearCompleted } = useTaskContext();
+  const hasCompleted = tasks.some((task) => task.completed);
+
   return (
     <div className="task-filters">
-      {filters.map((filter) => (
+      {filters.map((item) => (
         <button
-          key={filter.value}
+          key={item.value}
           type="button"
           className={
-            filter.value === currentFilter
+            item.value === filter
               ? 'task-filters__button task-filters__button--active' //активна кнопка
               : 'task-filters__button'
           }
-          onClick={() => onFilterChange(filter.value)}
+          onClick={() => setFilter(item.value)}
         >
-          {filter.label}
+          {item.label}
         </button>
       ))}
 
@@ -41,7 +33,7 @@ function TaskFilters({
         type="button"
         className="task-filters__clear"
         disabled={!hasCompleted}
-        onClick={onClearCompleted}
+        onClick={clearCompleted}
       >
         Очистити виконані
       </button>
