@@ -5,12 +5,14 @@ type Validator<T> = (value: unknown) => value is T;
 function readValue<T>(key: string, initialValue: T, validate?: Validator<T>): T {
   try {
     const raw = localStorage.getItem(key);
+    // 1. Якщо в сховищі нічого немає — повертаємо дефолтне значення
     if (raw === null) return initialValue;
     const parsed: unknown = JSON.parse(raw);
+    // 2. Якщо дані пошкоджені або не проходять бізнес-валідацію — відкидаємо їх
     if (validate && !validate(parsed)) return initialValue;
     return parsed as T;
   } catch {
-    // пошкоджений JSON або недоступний localStorage — не ламаємо застосунок
+    // 3. Захист від падіння: якщо JSON не валідний або localStorage заблокований
     return initialValue;
   }
 }

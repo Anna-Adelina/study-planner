@@ -14,7 +14,7 @@ function App() {
   // derived state: рахуємо під час render
   const activeCount = tasks.filter((task) => !task.completed).length;
 
-  // Effect: синхронізація React state із document.title
+  // Effect: оновлює заголовок сторінки браузера
   useEffect(() => {
     document.title = `Study Planner — ${activeCount} active tasks`;
   }, [activeCount]);

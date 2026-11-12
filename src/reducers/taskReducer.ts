@@ -18,19 +18,18 @@ export function createInitialState(tasks: Task[] = initialTasks): TaskState {
 const removeByIds = (tasks: Task[], ids: number[]): Task[] =>
   tasks.filter((task) => !ids.includes(task.id));
 
-// Чиста функція: без Date.now(), localStorage, таймерів і DOM.
-// id нового завдання приходить у payload, а не генерується тут.
 export function taskReducer(state: TaskState, action: TaskAction): TaskState {
   switch (action.type) {
     case 'add':
       return { ...state, tasks: [...state.tasks, action.payload] };
 
+    //чиста функція
     case 'toggle':
       return {
-        ...state,
+        ...state, //створюються нові об'єкти
         tasks: state.tasks.map((task) =>
-          task.id === action.payload.id
-            ? { ...task, completed: !task.completed }
+          task.id === action.payload.id //шукає чий id збігається з переданим у action.payload.id.
+            ? { ...task, completed: !task.completed }  //Якщо ID збігся, створює копію цього завдання з значенням completed
             : task,
         ),
       };

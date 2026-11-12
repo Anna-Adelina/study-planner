@@ -19,7 +19,7 @@ interface TaskProviderProps {
 }
 
 export function TaskProvider({ children }: TaskProviderProps) {
-  // Ліниве читання localStorage при ініціалізації reducer (не всередині reducer!)
+  // Ліниве читання localStorage при ініціалізації reducer 
   const [state, dispatch] = useReducer(taskReducer, undefined, () =>
     createInitialState(loadTasks() ?? undefined),
   );
@@ -51,7 +51,6 @@ export function TaskProvider({ children }: TaskProviderProps) {
   }, [state.tasks]);
 
   // Effect 2: таймер Undoable Delete. Reducer лише міняє state,
-  // а запуск і очищення таймера — тут.
   useEffect(() => {
     if (!state.pendingDeletion) return;
     const { kind } = state.pendingDeletion;
@@ -62,7 +61,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
           ? 'Виконані завдання видалено'
           : 'Завдання остаточно видалено',
       );
-    }, UNDO_DELAY_MS);
+    }, UNDO_DELAY_MS); // Час збігається з таймером видалення!
     return () => clearTimeout(timerId);
   }, [state.pendingDeletion, showToast]);
 
