@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import type { ToastMessage, ToastVariant } from '../types/toast';
 import type {
   FilterMode,
   NewTask,
@@ -21,6 +22,9 @@ export interface TaskContextValue {
   editingTask: Task | null;
   startEdit: (id: number) => void;
   cancelEdit: () => void;
+  toast: ToastMessage | null;
+  showToast: (message: string, variant?: ToastVariant) => void;
+  dismissToast: () => void;
 }
 
 // null за замовчуванням: useTaskContext перевірить, що ми всередині провайдера

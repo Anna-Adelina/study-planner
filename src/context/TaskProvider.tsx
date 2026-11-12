@@ -1,10 +1,11 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import type { ReactNode } from 'react';
 import { TaskContext } from './TaskContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { createInitialState, taskReducer } from '../reducers/taskReducer';
 import { isFilterMode } from '../types/task';
 import type { FilterMode, NewTask } from '../types/task';
+import type { ToastMessage, ToastVariant } from '../types/toast';
 import {
   FILTER_STORAGE_KEY,
   loadTasks,
@@ -34,6 +35,16 @@ export function TaskProvider({ children }: TaskProviderProps) {
   const editingTask =
     state.tasks.find((task) => task.id === editingId) ?? null;
 
+  // Toast: короткий зворотний зв'язок після дій
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const showToast = useCallback(
+    (message: string, variant: ToastVariant = 'success') => {
+      setToast({ id: Date.now(), message, variant });
+    },
+    [],
+  );
+  const dismissToast = useCallback(() => setToast(null), []);
+
   // Effect 1: після кожної зміни tasks синхронізуємо їх з localStorage
   useEffect(() => {
     saveTasks(state.tasks);
@@ -43,12 +54,17 @@ export function TaskProvider({ children }: TaskProviderProps) {
   // а запуск і очищення таймера — тут.
   useEffect(() => {
     if (!state.pendingDeletion) return;
-    const timerId = setTimeout(
-      () => dispatch({ type: 'confirmDelete' }),
-      UNDO_DELAY_MS,
-    );
+    const { kind } = state.pendingDeletion;
+    const timerId = setTimeout(() => {
+      dispatch({ type: 'confirmDelete' });
+      showToast(
+        kind === 'completed'
+          ? 'Виконані завдання видалено'
+          : 'Завдання остаточно видалено',
+      );
+    }, UNDO_DELAY_MS);
     return () => clearTimeout(timerId);
-  }, [state.pendingDeletion]);
+  }, [state.pendingDeletion, showToast]);
 
   const value = {
     tasks: state.tasks,
@@ -56,13 +72,22 @@ export function TaskProvider({ children }: TaskProviderProps) {
     filter,
     setFilter,
     // id генеруємо тут, а не в reducer (він має бути чистим)
-    addTask: (task: NewTask) =>
+    addTask: (task: NewTask) => {
       dispatch({
         type: 'add',
         payload: { ...task, id: Date.now(), completed: false },
-      }),
-    updateTask: (id: number, changes: NewTask) =>
-      dispatch({ type: 'update', payload: { id, changes } }),
+      });
+      showToast('Завдання створено');
+    },
+    updateTask: (id: number, changes: NewTask) => {
+      // неможливість виконати дію → Toast з помилкою
+      if (!state.tasks.some((task) => task.id === id)) {
+        showToast('Не вдалося зберегти: завдання не знайдено', 'error');
+        return;
+      }
+      dispatch({ type: 'update', payload: { id, changes } });
+      showToast('Зміни збережено');
+    },
     toggleTask: (id: number) => dispatch({ type: 'toggle', payload: { id } }),
     requestDelete: (id: number) =>
       dispatch({ type: 'requestDelete', payload: { id } }),
@@ -72,6 +97,9 @@ export function TaskProvider({ children }: TaskProviderProps) {
     editingTask,
     startEdit: (id: number) => setEditingId(id),
     cancelEdit: () => setEditingId(null),
+    toast,
+    showToast,
+    dismissToast,
   };
 
   return <TaskContext value={value}>{children}</TaskContext>;

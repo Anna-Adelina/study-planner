@@ -5,7 +5,7 @@ import type { Priority } from '../types/task';
 import './TaskForm.scss';
 
 function TaskForm() {
-  const { addTask, updateTask, editingTask, cancelEdit } = useTaskContext();
+  const { addTask, updateTask, editingTask, cancelEdit, showToast } = useTaskContext();
   const isEditing = editingTask !== null;
 
   // початкові значення беремо із завдання, яке редагуємо (якщо воно є)
@@ -22,11 +22,12 @@ function TaskForm() {
   const [error, setError] = useState('');
 
   //перевірка, що назва не порожня
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (title.trim() === '') {
       setError('Назва завдання обов’язкова');
+      showToast('Не вдалося зберегти: вкажіть назву', 'error');
       return;
     }
 
