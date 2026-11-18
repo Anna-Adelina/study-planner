@@ -77,31 +77,26 @@ export function useTasks() {
   // Якщо запит впаде, помилку обробляє форма (await кидає її далі)
   const createTask = async (values: NewTask): Promise<void> => {
     const created = await taskRepository.create(values);
-    const fallbackId = Date.now();
-    setState((prev) => {
-      // DummyJSON симулює POST і може повернути однаковий id,
-      // а key у списку має бути унікальним
-      const task = prev.tasks.some((t) => t.id === created.id)
-        ? { ...created, id: fallbackId }
-        : created;
-      return { ...prev, tasks: [task, ...prev.tasks], total: prev.total + 1 };
-    });
+    setState((prev) => ({
+      ...prev,
+      tasks: [created, ...prev.tasks],
+      total: prev.total + 1,
+    }));
   };
 
-    // PATCH: після успіху міняємо в state лише completed.
-  // update() повертає заглушки для client-only полів, тому весь об'єкт не підміняємо
+  // PATCH: накладаємо на задачу лише ті поля, які підтвердив сервер
   const toggleTask = async (id: number): Promise<void> => {
     const current = state.tasks.find((task) => task.id === id);
     if (!current) return;
 
-    const updated = await taskRepository.update(id, {
+    const applied = await taskRepository.update(id, {
       completed: !current.completed,
     });
 
     setState((prev) => ({
       ...prev,
       tasks: prev.tasks.map((task) =>
-        task.id === id ? { ...task, completed: updated.completed } : task,
+        task.id === id ? { ...task, ...applied } : task,
       ),
     }));
   };

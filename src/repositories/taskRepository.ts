@@ -19,6 +19,12 @@ export interface GetAllParams {
 // API розуміє лише ці поля
 export type TaskChanges = Partial<Pick<Task, 'title' | 'completed'>>;
 
+// DummyJSON лише симулює POST: створену задачу сервер не зберігає
+// (PATCH/DELETE за її id дають 404). Тому запам'ятовуємо id задач,
+// створених у цій сесії, і для них зміни лишаються на клієнті.
+const sessionCreatedIds = new Set<number>();
+let nextLocalId = 1_000_000; // далеко від id, які існують на сервері
+
 export const taskRepository = {
   async getAll({ limit, skip, signal }: GetAllParams): Promise<TaskPage> {
     const data = await request<TodosResponse>(
@@ -43,11 +49,18 @@ export const taskRepository = {
       method: 'POST',
       body: toApiPayload({ title: task.title, completed: false }),
     });
+    // DummyJSON щоразу повертає той самий id, а id у списку має бути унікальним
+    const id = sessionCreatedIds.has(created.id) ? nextLocalId++ : created.id;
+    sessionCreatedIds.add(id);
     // client-only поля (description, priority, category) беремо з форми
-    return { ...toTask(created), ...task };
+    return { ...toTask(created), ...task, id };
   },
 
-  async update(id: number, changes: TaskChanges): Promise<Task> {
+  // Повертає лише те, що підтвердив сервер; решту полів UI лишає як є
+  async update(id: number, changes: TaskChanges): Promise<TaskChanges> {
+    // задача створена в цій сесії: сервер її не знає, зміни лишаються на клієнті
+    if (sessionCreatedIds.has(id)) return changes;
+
     const payload: { todo?: string; completed?: boolean } = {};
     if (changes.title !== undefined) payload.todo = changes.title;
     if (changes.completed !== undefined) payload.completed = changes.completed;
@@ -56,10 +69,14 @@ export const taskRepository = {
       method: 'PATCH',
       body: payload,
     });
-    return toTask(updated);
+    return { title: updated.todo, completed: updated.completed };
   },
 
   async delete(id: number): Promise<void> {
+    if (sessionCreatedIds.has(id)) {
+      sessionCreatedIds.delete(id);
+      return;
+    }
     await request<unknown>(`/todos/${id}`, { method: 'DELETE' });
   },
 };
