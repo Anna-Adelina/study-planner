@@ -1,26 +1,51 @@
 import { useTaskContext } from '../hooks/useTaskContext';
+import type { LoadStatus } from '../hooks/useTasks';
+import type { Task } from '../types/task';
 import TaskItem from './TaskItem';
 import './TaskList.scss';
 
-//якщо завдань немає, покажи повідомлення, і далі код не виконується
-function TaskList() {
-  const { tasks, filter } = useTaskContext();
+interface TaskListProps {
+  tasks: Task[];
+  status: LoadStatus;
+  error: string | null;
+  isEmpty: boolean;
+  onRetry: () => void;
+}
 
-  // derived state: відфільтрований список обчислюється під час render
+function TaskList({ tasks, status, error, isEmpty, onRetry }: TaskListProps) {
+  // filter — client/UI state, тому беремо з контексту
+  const { filter } = useTaskContext();
+
+  if (status === 'loading') {
+    return (
+      <p className="task-list__empty" role="status">
+        Loading...
+      </p>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="task-list__error" role="alert">
+        <p>{error ?? 'Помилка завантаження.'}</p>
+        <button className="task-list__retry" type="button" onClick={onRetry}>
+          Спробувати ще
+        </button>
+      </div>
+    );
+  }
+
+  // empty — похідний стан: запит успішний, але задач немає
+  if (isEmpty) {
+    return <p className="task-list__empty">Завдань не знайдено.</p>;
+  }
+
+  // derived state: фільтр застосовуємо до поточної сторінки під час render
   const visibleTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'active') return !task.completed;
     return true;
   });
-
-  if (tasks.length === 0) {
-    return (
-      <div className="task-list__empty">
-        <p>Завдань поки немає.</p>
-        <p>Додайте перше навчальне завдання.</p>
-      </div>
-    );
-  }
 
   if (visibleTasks.length === 0) {
     return <p className="task-list__empty">За цим фільтром завдань немає.</p>;

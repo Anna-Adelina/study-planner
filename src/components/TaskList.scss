@@ -17,4 +17,29 @@
       margin: 4px 0;
     }
   }
+
+    &__error {
+    padding: 24px;
+    background: #fdecec;
+    border-radius: 8px;
+    text-align: center;
+    color: #b42318;
+
+    p {
+      margin: 0 0 12px;
+    }
+  }
+
+  &__retry {
+    padding: 8px 16px;
+    border: 1px solid #b42318;
+    border-radius: 6px;
+    background: #fff;
+    color: #b42318;
+    cursor: pointer;
+
+    &:hover {
+      background: #fdecec;
+    }
+  }
 }
