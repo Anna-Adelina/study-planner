@@ -29,6 +29,7 @@ function App() {
     goToPage,
     retry,
     createTask,
+    toggleTask
   } = useTasks();
 
   // derived state: рахуємо під час render
@@ -62,6 +63,7 @@ function App() {
           isEmpty={isEmpty}
           onRetry={retry}
           onSelect={setSelectedTask}
+          onToggle={toggleTask}
         />
         <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
       </main>

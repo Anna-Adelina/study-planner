@@ -88,6 +88,24 @@ export function useTasks() {
     });
   };
 
+    // PATCH: після успіху міняємо в state лише completed.
+  // update() повертає заглушки для client-only полів, тому весь об'єкт не підміняємо
+  const toggleTask = async (id: number): Promise<void> => {
+    const current = state.tasks.find((task) => task.id === id);
+    if (!current) return;
+
+    const updated = await taskRepository.update(id, {
+      completed: !current.completed,
+    });
+
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((task) =>
+        task.id === id ? { ...task, completed: updated.completed } : task,
+      ),
+    }));
+  };
+
   return {
     tasks: state.tasks,
     status: state.status,
@@ -99,5 +117,6 @@ export function useTasks() {
     goToPage,
     retry,
     createTask,
+    toggleTask
   };
 }

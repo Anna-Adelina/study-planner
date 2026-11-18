@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
 import { priorityLabels, type Task } from '../types/task';
 import './TaskItem.scss';
@@ -5,10 +6,13 @@ import './TaskItem.scss';
 interface TaskItemProps {
   task: Task;
   onSelect: (task: Task) => void;
+  onToggle: (id: number) => Promise<void>;
 }
 
-function TaskItem({ task, onSelect }: TaskItemProps) {
-  const { pendingDeletion, toggleTask, requestDelete, startEdit } = useTaskContext();
+function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
+  const { pendingDeletion, requestDelete, startEdit, showToast } = useTaskContext();
+  // UI state: чи йде зараз запит на зміну статусу цієї задачі
+  const [isToggling, setIsToggling] = useState(false);
 
   // derived state: чи очікує це завдання на видалення
   const isPendingDelete = pendingDeletion?.ids.includes(task.id) ?? false;
@@ -20,6 +24,17 @@ function TaskItem({ task, onSelect }: TaskItemProps) {
   ]
     .filter(Boolean)
     .join(' ');
+
+  const handleToggle = async () => {
+    setIsToggling(true);
+    try {
+      await onToggle(task.id);
+    } catch {
+      showToast('Не вдалося змінити статус завдання', 'error');
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   return (
     <li className={className}>
@@ -55,10 +70,10 @@ function TaskItem({ task, onSelect }: TaskItemProps) {
         <button
           className="task-item__button"
           type="button"
-          disabled={isPendingDelete}
-          onClick={() => toggleTask(task.id)}
+          disabled={isPendingDelete || isToggling}
+          onClick={handleToggle}
         >
-          {task.completed ? 'Повернути' : 'Виконано'}
+          {isToggling ? '...' : task.completed ? 'Повернути' : 'Виконано'}
         </button>
 
         <button
