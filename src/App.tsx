@@ -28,6 +28,7 @@ function App() {
     totalPages,
     goToPage,
     retry,
+    createTask,
   } = useTasks();
 
   // derived state: рахуємо під час render
@@ -42,7 +43,7 @@ function App() {
     <div className="app">
       <Header />
       <main className="app__main">
-        <TaskForm key={editingTask?.id ?? 'new'} />
+        <TaskForm key={editingTask?.id ?? 'new'} onCreate={createTask} />
 
         {selectedTask && (
           <TaskDetails

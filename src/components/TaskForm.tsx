@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
-import type { Priority } from '../types/task';
+import type { NewTask, Priority } from '../types/task';
 import './TaskForm.scss';
 
-function TaskForm() {
-  const { addTask, updateTask, editingTask, cancelEdit, showToast } = useTaskContext();
+interface TaskFormProps {
+  onCreate: (values: NewTask) => Promise<void>;
+}
+
+function TaskForm({ onCreate }: TaskFormProps) {
+  const { updateTask, editingTask, cancelEdit, showToast } = useTaskContext();
   const isEditing = editingTask !== null;
 
   // початкові значення беремо із завдання, яке редагуємо (якщо воно є)
@@ -20,18 +24,20 @@ function TaskForm() {
     editingTask?.priority ?? 'medium',
   );
   const [error, setError] = useState('');
+  // UI state: чи йде зараз запит на сервер
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  //перевірка, що назва не порожня
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    //перевірка, що назва не порожня
     if (title.trim() === '') {
       setError('Назва завдання обов’язкова');
       showToast('Не вдалося зберегти: вкажіть назву', 'error');
       return;
     }
 
-    const values = {
+    const values: NewTask = {
       title: title.trim(),
       description: description.trim(),
       category: category.trim() || 'Без категорії',
@@ -39,17 +45,28 @@ function TaskForm() {
     };
 
     if (editingTask) {
-      updateTask(editingTask.id, values); // зміна йде через dispatch → reducer
+      updateTask(editingTask.id, values); // поки через reducer, переробимо на кроці 8
       cancelEdit(); // форма перемонтується в режим «нове завдання»
       return;
     }
 
-    addTask(values);
-    setTitle('');
-    setDescription('');
-    setCategory('');
-    setPriority('medium');
+    setIsSubmitting(true);
     setError('');
+    try {
+      await onCreate(values);
+      // успіх: очищаємо форму й показуємо повідомлення
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setPriority('medium');
+      showToast('Завдання створено');
+    } catch {
+      // помилка: поля НЕ очищуємо, щоб користувач не втратив введене
+      setError('Не вдалося створити завдання. Спробуйте ще раз.');
+      showToast('Не вдалося створити завдання', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,8 +127,12 @@ function TaskForm() {
       </div>
 
       <div className="task-form__actions">
-        <button className="task-form__button" type="submit">
-          {isEditing ? 'Зберегти' : 'Додати'}
+        <button
+          className="task-form__button"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Збереження...' : isEditing ? 'Зберегти' : 'Додати'}
         </button>
         {isEditing && (
           <button

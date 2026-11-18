@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { isAbortError } from '../api/httpClient';
 import { toErrorMessage } from '../api/errorMessage';
 import { taskRepository } from '../repositories/taskRepository';
-import type { Task } from '../types/task';
+import type { NewTask, Task } from '../types/task';
 
 export const PAGE_SIZE = 10;
 
@@ -73,6 +73,21 @@ export function useTasks() {
     setReloadKey((key) => key + 1);
   };
 
+  // POST: після успіху оновлюємо server state без перезавантаження сторінки.
+  // Якщо запит впаде, помилку обробляє форма (await кидає її далі)
+  const createTask = async (values: NewTask): Promise<void> => {
+    const created = await taskRepository.create(values);
+    const fallbackId = Date.now();
+    setState((prev) => {
+      // DummyJSON симулює POST і може повернути однаковий id,
+      // а key у списку має бути унікальним
+      const task = prev.tasks.some((t) => t.id === created.id)
+        ? { ...created, id: fallbackId }
+        : created;
+      return { ...prev, tasks: [task, ...prev.tasks], total: prev.total + 1 };
+    });
+  };
+
   return {
     tasks: state.tasks,
     status: state.status,
@@ -83,5 +98,6 @@ export function useTasks() {
     totalPages,
     goToPage,
     retry,
+    createTask,
   };
 }
