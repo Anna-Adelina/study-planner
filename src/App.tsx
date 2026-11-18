@@ -14,7 +14,7 @@ import './App.scss';
 
 function App() {
   // client/UI state
-  const { editingTask } = useTaskContext();
+  const { editingId } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // server state
@@ -29,8 +29,12 @@ function App() {
     goToPage,
     retry,
     createTask,
-    toggleTask
+    toggleTask,
+    updateTask,
   } = useTasks();
+
+  // derived state: редаговану задачу знаходимо у server state під час render
+  const editingTask = tasks.find((task) => task.id === editingId) ?? null;
 
   // derived state: рахуємо під час render
   const activeCount = tasks.filter((task) => !task.completed).length;
@@ -44,7 +48,12 @@ function App() {
     <div className="app">
       <Header />
       <main className="app__main">
-        <TaskForm key={editingTask?.id ?? 'new'} onCreate={createTask} />
+        <TaskForm
+          key={editingTask?.id ?? 'new'}
+          editingTask={editingTask}
+          onCreate={createTask}
+          onUpdate={updateTask}
+        />
 
         {selectedTask && (
           <TaskDetails

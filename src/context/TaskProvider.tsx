@@ -31,10 +31,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
 
   // UI-стан: яке завдання зараз редагуємо
   const [editingId, setEditingId] = useState<number | null>(null);
-  // derived state: саме завдання знаходимо під час render
-  const editingTask =
-    state.tasks.find((task) => task.id === editingId) ?? null;
-
+  
   // Toast: короткий зворотний зв'язок після дій
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const showToast = useCallback(
@@ -96,7 +93,7 @@ export function TaskProvider({ children }: TaskProviderProps) {
       dispatch({ type: 'reset' });
       showToast('Дані скинуто до початкових', 'info');
     },
-    editingTask,
+    editingId,
     startEdit: (id: number) => setEditingId(id),
     cancelEdit: () => setEditingId(null),
     toast,

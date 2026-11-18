@@ -69,7 +69,11 @@ export const taskRepository = {
       method: 'PATCH',
       body: payload,
     });
-    return { title: updated.todo, completed: updated.completed };
+    // повертаємо лише відправлені поля: у симульованій відповіді решта застаріла
+    const applied: TaskChanges = {};
+    if (changes.title !== undefined) applied.title = updated.todo;
+    if (changes.completed !== undefined) applied.completed = updated.completed;
+    return applied;
   },
 
   async delete(id: number): Promise<void> {

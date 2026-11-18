@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react'; // NEW: useEffect, useRef
 import type { FormEvent } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
-import type { NewTask, Priority } from '../types/task';
+import type { NewTask, Priority, Task } from '../types/task';
 import './TaskForm.scss';
 
 interface TaskFormProps {
+  editingTask: Task | null;
   onCreate: (values: NewTask) => Promise<void>;
+  onUpdate: (id: number, values: NewTask) => Promise<void>;
 }
 
-function TaskForm({ onCreate }: TaskFormProps) {
-  const { updateTask, editingTask, cancelEdit, showToast } = useTaskContext();
+function TaskForm({ editingTask, onCreate, onUpdate }: TaskFormProps) {
+  const { cancelEdit, showToast } = useTaskContext();
   const isEditing = editingTask !== null;
+
+  // NEW: посилання на поле назви
+  const titleRef = useRef<HTMLInputElement>(null);
 
   // початкові значення беремо із завдання, яке редагуємо (якщо воно є)
   const [title, setTitle] = useState(editingTask?.title ?? '');
@@ -26,6 +31,12 @@ function TaskForm({ onCreate }: TaskFormProps) {
   const [error, setError] = useState('');
   // UI state: чи йде зараз запит на сервер
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // NEW: при вході в режим редагування ставимо фокус на назву
+  // (браузер заодно прокручує сторінку до форми)
+  useEffect(() => {
+    if (editingTask) titleRef.current?.focus();
+  }, [editingTask]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,26 +55,29 @@ function TaskForm({ onCreate }: TaskFormProps) {
       priority,
     };
 
-    if (editingTask) {
-      updateTask(editingTask.id, values); // поки через reducer, переробимо на кроці 8
-      cancelEdit(); // форма перемонтується в режим «нове завдання»
-      return;
-    }
-
     setIsSubmitting(true);
     setError('');
     try {
-      await onCreate(values);
-      // успіх: очищаємо форму й показуємо повідомлення
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      setPriority('medium');
-      showToast('Завдання створено');
+      if (editingTask) {
+        await onUpdate(editingTask.id, values);
+        showToast('Зміни збережено');
+        cancelEdit(); // форма перемонтується в режим «нове завдання»
+      } else {
+        await onCreate(values);
+        // успіх: очищаємо форму й показуємо повідомлення
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setPriority('medium');
+        showToast('Завдання створено');
+      }
     } catch {
       // помилка: поля НЕ очищуємо, щоб користувач не втратив введене
-      setError('Не вдалося створити завдання. Спробуйте ще раз.');
-      showToast('Не вдалося створити завдання', 'error');
+      const message = editingTask
+        ? 'Не вдалося зберегти зміни. Спробуйте ще раз.'
+        : 'Не вдалося створити завдання. Спробуйте ще раз.';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,6 +93,7 @@ function TaskForm({ onCreate }: TaskFormProps) {
         </label>
         <input
           id="task-title"
+          ref={titleRef} // NEW
           className="task-form__input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}

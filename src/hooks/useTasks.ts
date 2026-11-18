@@ -101,6 +101,19 @@ export function useTasks() {
     }));
   };
 
+  // PATCH назви + client-only поля. На сервер іде лише title,
+  // description/category/priority залишаються метаданими UI
+  const updateTask = async (id: number, values: NewTask): Promise<void> => {
+    const applied = await taskRepository.update(id, { title: values.title });
+
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((task) =>
+        task.id === id ? { ...task, ...values, ...applied } : task,
+      ),
+    }));
+  };
+
   return {
     tasks: state.tasks,
     status: state.status,
@@ -112,6 +125,7 @@ export function useTasks() {
     goToPage,
     retry,
     createTask,
-    toggleTask
+    toggleTask,
+    updateTask
   };
 }

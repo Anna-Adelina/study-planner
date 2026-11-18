@@ -19,7 +19,7 @@ export interface TaskContextValue {
   undoDelete: () => void;
   clearCompleted: () => void;
   resetTasks: () => void;
-  editingTask: Task | null;
+  editingId: number | null;
   startEdit: (id: number) => void;
   cancelEdit: () => void;
   toast: ToastMessage | null;
