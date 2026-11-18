@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { HttpError, isAbortError } from '../api/httpClient';
+import { isAbortError } from '../api/httpClient';
+import { toErrorMessage } from '../api/errorMessage';
 import { taskRepository } from '../repositories/taskRepository';
 import type { Task } from '../types/task';
 
@@ -12,13 +13,6 @@ interface TasksState {
   tasks: Task[];
   total: number;
   error: string | null;
-}
-
-function toErrorMessage(error: unknown): string {
-  if (error instanceof HttpError) {
-    return `Помилка завантаження (код ${error.status}).`;
-  }
-  return 'Помилка завантаження. Перевірте інтернет-з’єднання.';
 }
 
 export function useTasks() {

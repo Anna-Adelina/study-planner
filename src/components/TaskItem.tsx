@@ -1,19 +1,14 @@
 import { useTaskContext } from '../hooks/useTaskContext';
-import type { Task } from '../types/task';
+import { priorityLabels, type Task } from '../types/task';
 import './TaskItem.scss';
 
 interface TaskItemProps {
   task: Task;
+  onSelect: (task: Task) => void;
 }
 
-const priorityLabels = {
-  low: 'Низький',
-  medium: 'Середній',
-  high: 'Високий',
-};
-
-function TaskItem({ task }: TaskItemProps) {
-  const { pendingDeletion, toggleTask, requestDelete, startEdit  } = useTaskContext();
+function TaskItem({ task, onSelect }: TaskItemProps) {
+  const { pendingDeletion, toggleTask, requestDelete, startEdit } = useTaskContext();
 
   // derived state: чи очікує це завдання на видалення
   const isPendingDelete = pendingDeletion?.ids.includes(task.id) ?? false;
@@ -48,7 +43,15 @@ function TaskItem({ task }: TaskItemProps) {
         </div>
       </div>
 
-            <div className="task-item__actions">
+      <div className="task-item__actions">
+        <button
+          className="task-item__button"
+          type="button"
+          onClick={() => onSelect(task)}
+        >
+          Деталі
+        </button>
+
         <button
           className="task-item__button"
           type="button"

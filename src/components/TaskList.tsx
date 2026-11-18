@@ -10,9 +10,10 @@ interface TaskListProps {
   error: string | null;
   isEmpty: boolean;
   onRetry: () => void;
+  onSelect: (task: Task) => void;
 }
 
-function TaskList({ tasks, status, error, isEmpty, onRetry }: TaskListProps) {
+function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect }: TaskListProps) {
   // filter — client/UI state, тому беремо з контексту
   const { filter } = useTaskContext();
 
@@ -54,7 +55,7 @@ function TaskList({ tasks, status, error, isEmpty, onRetry }: TaskListProps) {
   return (
     <ul className="task-list">
       {visibleTasks.map((task) => (
-        <TaskItem key={task.id} task={task} />
+        <TaskItem key={task.id} task={task} onSelect={onSelect} />
       ))}
     </ul>
   );

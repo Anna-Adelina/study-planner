@@ -1,18 +1,22 @@
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
 import TaskForm from './components/TaskForm';
+import TaskDetails from './components/TaskDetails';
 import TaskStats from './components/TaskStats';
 import TaskFilters from './components/TaskFilters';
 import TaskList from './components/TaskList';
 import Pagination from './components/Pagination';
 import Toast from './components/Toast';
-import { useEffect } from 'react';
 import { useTaskContext } from './hooks/useTaskContext';
 import { useTasks } from './hooks/useTasks';
+import type { Task } from './types/task';
 import './App.scss';
 
 function App() {
   // client/UI state
   const { editingTask } = useTaskContext();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
   // server state
   const {
     tasks,
@@ -39,6 +43,15 @@ function App() {
       <Header />
       <main className="app__main">
         <TaskForm key={editingTask?.id ?? 'new'} />
+
+        {selectedTask && (
+          <TaskDetails
+            key={selectedTask.id}
+            task={selectedTask}
+            onClose={() => setSelectedTask(null)}
+          />
+        )}
+
         <TaskStats tasks={tasks} total={total} />
         <TaskFilters />
         <TaskList
@@ -47,6 +60,7 @@ function App() {
           error={error}
           isEmpty={isEmpty}
           onRetry={retry}
+          onSelect={setSelectedTask}
         />
         <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
       </main>
