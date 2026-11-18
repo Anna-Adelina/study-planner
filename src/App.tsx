@@ -14,7 +14,7 @@ import './App.scss';
 
 function App() {
   // client/UI state
-  const { editingId } = useTaskContext();
+  const { editingId, cancelEdit  } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // server state
@@ -31,6 +31,8 @@ function App() {
     createTask,
     toggleTask,
     updateTask,
+    deleteTask,
+    clearCompleted
   } = useTasks();
 
   // derived state: редаговану задачу знаходимо у server state під час render
@@ -43,6 +45,12 @@ function App() {
   useEffect(() => {
     document.title = `Study Planner — ${activeCount} active tasks`;
   }, [activeCount]);
+
+  const handleDelete = async (id: number) => {
+    await deleteTask(id);
+    setSelectedTask((current) => (current?.id === id ? null : current));
+    if (editingId === id) cancelEdit();
+  };
 
   return (
     <div className="app">
@@ -64,7 +72,7 @@ function App() {
         )}
 
         <TaskStats tasks={tasks} total={total} />
-        <TaskFilters />
+        <TaskFilters tasks={tasks} onClearCompleted={clearCompleted} />
         <TaskList
           tasks={tasks}
           status={status}
@@ -73,6 +81,7 @@ function App() {
           onRetry={retry}
           onSelect={setSelectedTask}
           onToggle={toggleTask}
+          onDelete={handleDelete}
         />
         <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
       </main>

@@ -114,6 +114,33 @@ export function useTasks() {
     }));
   };
 
+    // DELETE: список оновлюємо лише після успішної відповіді
+  const deleteTask = async (id: number): Promise<void> => {
+    await taskRepository.delete(id);
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((task) => task.id !== id),
+      total: Math.max(0, prev.total - 1),
+    }));
+  };
+
+  // Видаляє всі виконані на поточній сторінці. Повертає, скільки не вдалося:
+  // успішні прибираємо зі state, невдалі лишаються в списку
+  const clearCompleted = async (): Promise<number> => {
+    const ids = state.tasks.filter((task) => task.completed).map((task) => task.id);
+    const results = await Promise.allSettled(
+      ids.map((id) => taskRepository.delete(id)),
+    );
+    const deletedIds = ids.filter((_, i) => results[i].status === 'fulfilled');
+
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((task) => !deletedIds.includes(task.id)),
+      total: Math.max(0, prev.total - deletedIds.length),
+    }));
+    return ids.length - deletedIds.length;
+  };
+
   return {
     tasks: state.tasks,
     status: state.status,
@@ -126,6 +153,8 @@ export function useTasks() {
     retry,
     createTask,
     toggleTask,
-    updateTask
+    updateTask,
+    deleteTask,
+    clearCompleted
   };
 }

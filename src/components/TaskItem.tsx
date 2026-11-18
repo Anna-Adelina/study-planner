@@ -7,20 +7,20 @@ interface TaskItemProps {
   task: Task;
   onSelect: (task: Task) => void;
   onToggle: (id: number) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }
 
-function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
-  const { pendingDeletion, requestDelete, startEdit, showToast } = useTaskContext();
-  // UI state: чи йде зараз запит на зміну статусу цієї задачі
+function TaskItem({ task, onSelect, onToggle, onDelete }: TaskItemProps) {
+  const { startEdit, showToast } = useTaskContext();
+  // UI state цієї картки
   const [isToggling, setIsToggling] = useState(false);
-
-  // derived state: чи очікує це завдання на видалення
-  const isPendingDelete = pendingDeletion?.ids.includes(task.id) ?? false;
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const className = [
     'task-item',
     task.completed && 'task-item--completed',
-    isPendingDelete && 'task-item--pending',
+    isDeleting && 'task-item--pending',
   ]
     .filter(Boolean)
     .join(' ');
@@ -33,6 +33,18 @@ function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
       showToast('Не вдалося змінити статус завдання', 'error');
     } finally {
       setIsToggling(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(task.id);
+      showToast('Завдання видалено');
+      // успіх: картка зникне зі списку разом зі своїм state
+    } catch {
+      showToast('Не вдалося видалити завдання', 'error');
+      setIsDeleting(false); // підтвердження лишається відкритим: можна повторити
     }
   };
 
@@ -49,8 +61,8 @@ function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
             {priorityLabels[task.priority]}
           </span>
           <span className="task-item__status">
-            {isPendingDelete
-              ? 'Буде видалено'
+            {isDeleting
+              ? 'Видаляється...'
               : task.completed
                 ? 'Виконано'
                 : 'Не виконано'}
@@ -70,7 +82,7 @@ function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
         <button
           className="task-item__button"
           type="button"
-          disabled={isPendingDelete || isToggling}
+          disabled={isDeleting || isToggling}
           onClick={handleToggle}
         >
           {isToggling ? '...' : task.completed ? 'Повернути' : 'Виконано'}
@@ -79,22 +91,42 @@ function TaskItem({ task, onSelect, onToggle }: TaskItemProps) {
         <button
           className="task-item__button"
           type="button"
-          disabled={isPendingDelete}
+          disabled={isDeleting}
           onClick={() => startEdit(task.id)}
         >
           Редагувати
         </button>
 
-        {task.completed && (
-          <button
-            className="task-item__button task-item__button--danger"
-            type="button"
-            disabled={isPendingDelete}
-            onClick={() => requestDelete(task.id)}
-          >
-            Видалити
-          </button>
-        )}
+        {task.completed &&
+          (isConfirmingDelete ? (
+            <>
+              <span className="task-item__confirm-text">Видалити завдання?</span>
+              <button
+                className="task-item__button task-item__button--danger"
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDelete}
+              >
+                {isDeleting ? '...' : 'Так, видалити'}
+              </button>
+              <button
+                className="task-item__button"
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setIsConfirmingDelete(false)}
+              >
+                Ні
+              </button>
+            </>
+          ) : (
+            <button
+              className="task-item__button task-item__button--danger"
+              type="button"
+              onClick={() => setIsConfirmingDelete(true)}
+            >
+              Видалити
+            </button>
+          ))}
       </div>
     </li>
   );

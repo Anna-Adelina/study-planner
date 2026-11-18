@@ -12,9 +12,10 @@ interface TaskListProps {
   onRetry: () => void;
   onSelect: (task: Task) => void;
   onToggle: (id: number) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }
 
-function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle}: TaskListProps) {
+function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle, onDelete }: TaskListProps) {
   // filter — client/UI state, тому беремо з контексту
   const { filter } = useTaskContext();
 
@@ -56,7 +57,7 @@ function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle}:
   return (
     <ul className="task-list">
       {visibleTasks.map((task) => (
-        <TaskItem key={task.id} task={task} onSelect={onSelect} onToggle={onToggle} />
+        <TaskItem key={task.id} task={task} onSelect={onSelect} onToggle={onToggle} onDelete={onDelete} />
       ))}
     </ul>
   );
