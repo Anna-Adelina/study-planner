@@ -1,75 +1,75 @@
-# React + TypeScript + Vite
+# Study Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Планувальник навчальних завдань на React 19 + TypeScript + Vite.
+Лабораторна робота №10: інтеграція з REST API, API layer, Repository Pattern,
+асинхронні стани, CRUD, пагінація та скасування запитів.
 
-Currently, two official plugins are available:
+## Запуск
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Потрібен Node.js 22.22 або новіший.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+cp .env.example .env   # у PowerShell: Copy-Item .env.example .env
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Скрипти: `npm run dev`, `npm run build`, `npm run lint`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Конфігурація
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+URL API береться зі змінної середовища (файл `.env` не додається до Git):
 
 ```
+VITE_API_URL=https://dummyjson.com
+```
+
+## API
+
+Використовується [DummyJSON Todos](https://dummyjson.com/docs/todos).
+
+| Метод | Endpoint | Призначення |
+|---|---|---|
+| GET | `/todos?limit=10&skip=0` | список із пагінацією |
+| GET | `/todos/:id` | одне завдання |
+| POST | `/todos/add` | створення |
+| PATCH | `/todos/:id` | оновлення (`title`, `completed`) |
+| DELETE | `/todos/:id` | видалення |
+
+DummyJSON лише **симулює** POST, PATCH і DELETE: відповідь повертається, але сервер
+нічого не зберігає. Тому після успішної операції клієнт сам оновлює свій state, а
+`taskRepository` запам'ятовує зміни за поточну сесію. Після перезавантаження сторінки
+дані повертаються до стану сервера. Поля `description`, `priority` і `category`
+API не підтримує: це client-only metadata.
+
+## Архітектура
+
+```
+UI-компоненти  →  hooks (useTasks, useTaskDetails)  →  taskRepository  →  httpClient  →  REST API
+```
+
+| Шар | Файл | Відповідальність |
+|---|---|---|
+| HTTP client | `src/api/httpClient.ts` | URL із `VITE_API_URL`, `fetch`, перевірка `response.ok`, `HttpError`, `AbortSignal` |
+| Repository | `src/repositories/taskRepository.ts` | endpoint-и, mapping DTO ↔ `Task`, особливості навчального API |
+| Mapper | `src/repositories/taskMapper.ts` | `ApiTodo` → `Task` і назад |
+| Server state | `src/hooks/useTasks.ts` | список, loading/error/empty/success, пагінація, retry, скасування запитів, CRUD |
+| Деталі | `src/hooks/useTaskDetails.ts` | отримання завдання за id зі скасуванням |
+| Client/UI state | `src/context/TaskProvider.tsx` | фільтр, редаговане завдання, toast |
+
+UI-компоненти не містять URL і прямих HTTP-викликів.
+
+## Стани та скасування запитів
+
+- loading, success, error (з кнопкою «Спробувати ще») та empty для списку й деталей;
+- під час переходу між сторінками попередній GET скасовується через `AbortController`;
+  скасований запит не показується користувачу як помилка;
+- видалення потребує підтвердження в інтерфейсі.
+
+## Стилі
+
+SCSS із BEM: кожен компонент має власний `.scss` файл поруч.
+
+## Git
+
+Робота виконана у гілці `feature/rest-api`, коміти за Conventional Commits.
