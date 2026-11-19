@@ -16,9 +16,9 @@ interface TaskListProps {
 }
 
 function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle, onDelete }: TaskListProps) {
-  // filter — client/UI state, тому беремо з контексту
   const { filter } = useTaskContext();
 
+  // Поки запит виконується — показуємо індикатор завантаження
   if (status === 'loading') {
     return (
       <p className="task-list__empty" role="status">
@@ -27,6 +27,7 @@ function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle, 
     );
   }
 
+  // Якщо сталася помилка — показуємо текст помилки і кнопку повтору запиту
   if (status === 'error') {
     return (
       <div className="task-list__error" role="alert">
@@ -38,12 +39,11 @@ function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle, 
     );
   }
 
-  // empty — похідний стан: запит успішний, але задач немає
+  // Успішний запит, але задач на сторінці немає — виводимо порожній стан
   if (isEmpty) {
     return <p className="task-list__empty">Завдань не знайдено.</p>;
   }
 
-  // derived state: фільтр застосовуємо до поточної сторінки під час render
   const visibleTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'active') return !task.completed;
@@ -54,6 +54,7 @@ function TaskList({ tasks, status, error, isEmpty, onRetry, onSelect, onToggle, 
     return <p className="task-list__empty">За цим фільтром завдань немає.</p>;
   }
 
+  // Якщо попередні перевірки пройшли — малюємо відфільтрований список задач
   return (
     <ul className="task-list">
       {visibleTasks.map((task) => (

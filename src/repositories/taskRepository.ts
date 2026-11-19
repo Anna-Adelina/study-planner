@@ -16,16 +16,14 @@ export interface GetAllParams {
   signal?: AbortSignal;
 }
 
-// API розуміє лише ці поля
 export type TaskChanges = Partial<Pick<Task, 'title' | 'completed'>>;
 
-// DummyJSON лише симулює POST/PATCH/DELETE: сервер нічого не зберігає.
-// Тому repository сам пам'ятає, що ми «змінили» за цю сесію,
-// і накладає це на відповіді сервера (як стікери з поправками).
+//DummyJSON лише імітує запити і нічого не зберігає.
+//localChanges і sessionTasks запам'ятовують зміни на час сесії й накладають їх на відповідь сервера. 
 const localChanges = new Map<number, TaskChanges>();
-// Задачі, створені в цій сесії: сервер їх не знає (PATCH/DELETE дали б 404)
 const sessionTasks = new Map<number, Task>();
-let nextLocalId = 1_000_000; // далеко від id, які існують на сервері
+
+let nextLocalId = 1_000_000; 
 
 function withLocalChanges(task: Task): Task {
   return { ...task, ...localChanges.get(task.id) };
@@ -35,13 +33,16 @@ function rememberChanges(id: number, changes: TaskChanges): void {
   localChanges.set(id, { ...localChanges.get(id), ...changes });
 }
 
+//getAll, getById, create, update, delete
 export const taskRepository = {
   async getAll({ limit, skip, signal }: GetAllParams): Promise<TaskPage> {
     const data = await request<TodosResponse>(
+      //Шлях (endpoint) до ресурсу на сервері та параметри пагінації (limit — скільки взяти, skip — скільки пропустити).
       `/todos?limit=${limit}&skip=${skip}`,
       { signal },
     );
     return {
+      // data.todos.map(toTask) - Переводимо формат API (поле todo) у нашу модель задачі (title) через toTask
       tasks: data.todos.map(toTask).map(withLocalChanges),
       total: data.total,
       skip: data.skip,
@@ -50,7 +51,7 @@ export const taskRepository = {
   },
 
   async getById(id: number, signal?: AbortSignal): Promise<Task> {
-    // задача створена в цій сесії: сервер її не знає
+
     const local = sessionTasks.get(id);
     if (local) return withLocalChanges(local);
 
@@ -63,17 +64,16 @@ export const taskRepository = {
       method: 'POST',
       body: toApiPayload({ title: newTask.title, completed: false }),
     });
-    // DummyJSON щоразу повертає той самий id, а id у списку має бути унікальним
+
     const id = sessionTasks.has(created.id) ? nextLocalId++ : created.id;
-    // client-only поля (description, priority, category) беремо з форми
+
     const task: Task = { ...toTask(created), ...newTask, id };
     sessionTasks.set(id, task);
     return task;
   },
 
-  // Повертає лише те, що застосовано; решту полів UI лишає як є
   async update(id: number, changes: TaskChanges): Promise<TaskChanges> {
-    // задача створена в цій сесії: зміни лишаються на клієнті
+
     if (sessionTasks.has(id)) {
       rememberChanges(id, changes);
       return changes;
@@ -88,7 +88,6 @@ export const taskRepository = {
       body: payload,
     });
 
-    // повертаємо лише відправлені поля: у симульованій відповіді решта застаріла
     const applied: TaskChanges = {};
     if (changes.title !== undefined) applied.title = updated.todo;
     if (changes.completed !== undefined) applied.completed = updated.completed;
@@ -100,7 +99,6 @@ export const taskRepository = {
     if (!sessionTasks.has(id)) {
       await request<unknown>(`/todos/${id}`, { method: 'DELETE' });
     }
-    // чистимо стікери лише після успіху
     sessionTasks.delete(id);
     localChanges.delete(id);
   },

@@ -11,19 +11,19 @@ interface TaskProviderProps {
   children: ReactNode;
 }
 
-// Context тримає лише client/UI state. Server state живе в useTasks
+// Тут зберігається лише стан самого інтерфейсу (фільтр, редагована задача, toast).
 export function TaskProvider({ children }: TaskProviderProps) {
-  // фільтр: UI-налаштування, його доречно зберігати в localStorage
+  // який фільтр обрав користувач (зберігається в localStorage)
   const [filter, setFilter] = useLocalStorage<FilterMode>(
     FILTER_STORAGE_KEY,
     'all',
     isFilterMode,
   );
 
-  // UI-стан: яке завдання зараз редагуємо
+  // UI-стан: id задачі, яку зараз редагують.
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // Toast: короткий зворотний зв'язок після дій
+  // Toast: спливаючі сповіщення після дій.
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const showToast = useCallback(
     (message: string, variant: ToastVariant = 'success') => {

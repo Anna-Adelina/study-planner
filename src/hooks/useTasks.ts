@@ -6,6 +6,7 @@ import type { NewTask, Task } from '../types/task';
 
 export const PAGE_SIZE = 10;
 
+//Задаємо три можливі стани завантаження
 export type LoadStatus = 'loading' | 'success' | 'error';
 
 interface TasksState {
@@ -16,25 +17,24 @@ interface TasksState {
 }
 
 export function useTasks() {
-  // client/UI state: яку сторінку хоче бачити користувач
   const [page, setPage] = useState(1);
-  // лічильник для кнопки «Спробувати ще»
   const [reloadKey, setReloadKey] = useState(0);
-  // server state: те, що прийшло з API
+  // server state: зберігається поточний стан даних із сервера
   const [state, setState] = useState<TasksState>({
-    status: 'loading',
-    tasks: [],
-    total: 0,
-    error: null,
+    status: 'loading',   //один із тих трьох варіантів
+    tasks: [],           //масив задач
+    total: 0,            //кількість задач
+    error: null,         //текст помилки
   });
 
   useEffect(() => {
+    //На кожен новий запит ми створюємо свою окрему «кнопку стоп» (controller), щоб керувати саме цим запитом.
     const controller = new AbortController();
 
     taskRepository
       .getAll({
         limit: PAGE_SIZE,
-        skip: (page - 1) * PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,  // Рахуємо, скільки записів пропустити для поточної сторінки (для 1-ї сторінки skip = 0)
         signal: controller.signal,
       })
       .then((result) => {
@@ -45,9 +45,11 @@ export function useTasks() {
           error: null,
         });
       })
+
       .catch((error: unknown) => {
-        // скасований запит — не помилка для користувача
+        // Якщо запит скасували навмисне — нічого не робимо, це не помилка для користувача
         if (isAbortError(error)) return;
+
         setState((prev) => ({
           ...prev,
           status: 'error',
@@ -55,7 +57,8 @@ export function useTasks() {
         }));
       });
 
-    // cleanup: нова сторінка або демонтаж → скасовуємо попередній запит
+    // Скасовуємо попередній запит при зміні сторінки/перезапуску сторінки,
+    // щоб стара відповідь не перезаписала нові дані
     return () => controller.abort();
   }, [page, reloadKey]);
 
@@ -63,18 +66,18 @@ export function useTasks() {
 
   const goToPage = (next: number) => {
     const target = Math.min(Math.max(next, 1), totalPages);
-    if (target === page) return; // інакше застрягнемо в loading без нового запиту
+    if (target === page) return; 
     setState((prev) => ({ ...prev, status: 'loading', error: null }));
     setPage(target);
   };
 
+  //Коли сталась помилка і користувач тисне «Спробувати ще», retry ставить status: 'loading' і збільшує reloadKey на 1
   const retry = () => {
     setState((prev) => ({ ...prev, status: 'loading', error: null }));
     setReloadKey((key) => key + 1);
   };
 
   // POST: після успіху оновлюємо server state без перезавантаження сторінки.
-  // Якщо запит впаде, помилку обробляє форма (await кидає її далі)
   const createTask = async (values: NewTask): Promise<void> => {
     const created = await taskRepository.create(values);
     setState((prev) => ({
@@ -102,7 +105,6 @@ export function useTasks() {
   };
 
   // PATCH назви + client-only поля. На сервер іде лише title,
-  // description/category/priority залишаються метаданими UI
   const updateTask = async (id: number, values: NewTask): Promise<void> => {
     const applied = await taskRepository.update(id, { title: values.title });
 

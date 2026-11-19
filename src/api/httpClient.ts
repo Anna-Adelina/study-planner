@@ -1,4 +1,5 @@
-const BASE_URL: string | undefined = import.meta.env.VITE_API_URL;
+//Значення береться зі змінної оточення VITE_API_URL
+const BASE_URL: string | undefined = import.meta.env.VITE_API_URL;  
 
 export class HttpError extends Error {
   status: number;
@@ -10,7 +11,7 @@ export class HttpError extends Error {
   }
 }
 
-// Скасований запит — не помилка для користувача
+// Перевіряємо, чи запит скасували навмисне — це не помилка сервера
 export function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
 }
@@ -31,11 +32,13 @@ export async function request<T>(
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
-    signal,
+    signal, // Передаємо сигнал скасування, щоб можна було перервати запит (наприклад, при виході зі сторінки)
     headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  //fetch не кидає помилку 404/500 сам. 
+  // if перехоплює відповідь і кидає об'єкт HttpError із кодом статусу (response.status), 
   if (!response.ok) {
     throw new HttpError(response.status, `Помилка сервера (${response.status})`);
   }
