@@ -9,13 +9,13 @@ import Pagination from './components/Pagination';
 import Toast from './components/Toast';
 import { useTaskContext } from './hooks/useTaskContext';
 import { useTasks } from './hooks/useTasks';
-import type { Task } from './types/task';
 import './App.scss';
 
 function App() {
   // client/UI state
-  const { editingId, cancelEdit  } = useTaskContext();
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const { editingId, cancelEdit } = useTaskContext();
+  // зберігаємо лише id, а не копію задачі: так дані не дублюються
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // server state
   const {
@@ -32,13 +32,13 @@ function App() {
     toggleTask,
     updateTask,
     deleteTask,
-    clearCompleted
+    clearCompleted,
   } = useTasks();
 
-  // derived state: редаговану задачу знаходимо у server state під час render
+  // derived state: знаходимо задачі у server state під час render
   const editingTask = tasks.find((task) => task.id === editingId) ?? null;
+  const selectedTask = tasks.find((task) => task.id === selectedId) ?? null;
 
-  // derived state: рахуємо під час render
   const activeCount = tasks.filter((task) => !task.completed).length;
 
   // Effect: оновлює заголовок сторінки браузера
@@ -48,7 +48,7 @@ function App() {
 
   const handleDelete = async (id: number) => {
     await deleteTask(id);
-    setSelectedTask((current) => (current?.id === id ? null : current));
+    // деталі закриються самі: видалена задача зникла з tasks, і selectedTask став null
     if (editingId === id) cancelEdit();
   };
 
@@ -65,9 +65,10 @@ function App() {
 
         {selectedTask && (
           <TaskDetails
-            key={selectedTask.id}
+            // змінився статус чи назва: перемонтовуємо, і деталі завантажуються заново
+            key={`${selectedTask.id}-${selectedTask.title}-${selectedTask.completed}`}
             task={selectedTask}
-            onClose={() => setSelectedTask(null)}
+            onClose={() => setSelectedId(null)}
           />
         )}
 
@@ -79,7 +80,7 @@ function App() {
           error={error}
           isEmpty={isEmpty}
           onRetry={retry}
-          onSelect={setSelectedTask}
+          onSelect={(task) => setSelectedId(task.id)}
           onToggle={toggleTask}
           onDelete={handleDelete}
         />
